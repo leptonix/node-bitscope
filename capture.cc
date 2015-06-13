@@ -11,10 +11,10 @@ using v8::Value;
 
 #define MY_DEVICES 1
 #define MY_DEVICE 0
-#define MY_CHANNEL 1
+#define MY_CHANNEL 0
 #define MY_MODE BL_MODE_FAST
 #define MY_RATE 1000000
-#define MY_SIZE 4
+#define MY_SIZE 1000
 
 class CaptureWorker : public NanAsyncWorker {
   public:
