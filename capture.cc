@@ -5,7 +5,6 @@
 
 using namespace v8;
 
-#define MY_DEVICES 1
 #define MY_DEVICE 0
 #define MY_MODE BL_MODE_FAST
 
