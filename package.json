@@ -1,0 +1,10 @@
+{
+  "name": "bitscope",
+  "version": "0.1.0",
+  "description": "Bitscope library",
+  "main": "index.js",
+  "gypfile": true,
+  "dependencies": {
+    "nan": "*"
+  }
+}
