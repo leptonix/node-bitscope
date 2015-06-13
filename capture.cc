@@ -3,23 +3,20 @@
 
 #include "capture.h"
 
-using v8::Function;
-using v8::Local;
-using v8::Null;
-using v8::Number;
-using v8::Value;
+using namespace v8;
 
 #define MY_DEVICES 1
 #define MY_DEVICE 0
-#define MY_CHANNEL 0
 #define MY_MODE BL_MODE_FAST
-#define MY_RATE 1000000
-#define MY_SIZE 1000
 
 class CaptureWorker : public NanAsyncWorker {
   public:
-    CaptureWorker(NanCallback* callback) : NanAsyncWorker(callback) {}
-    ~CaptureWorker() {}
+    CaptureWorker(NanCallback* callback, int channel, int rate, int size) : NanAsyncWorker(callback), channel(channel), rate(rate), size(size) {
+      buffer = new double[size];
+    }
+    ~CaptureWorker() {
+      delete buffer;
+    }
 
     void Execute () {
       if (!BL_Open("", MY_DEVICE)) {
@@ -30,57 +27,73 @@ class CaptureWorker : public NanAsyncWorker {
         error = "Failed to select device";
         goto exit;
       }
-      if (BL_Select(BL_SELECT_CHANNEL, MY_CHANNEL) != MY_CHANNEL) {
+      if (BL_Select(BL_SELECT_CHANNEL, channel) != channel) {
         error = "Failed to select channel";
         goto exit;
       }
-
       if (BL_Mode(MY_MODE) != MY_MODE) {
         error = "Failed to select mode";
         goto exit;
       }
       BL_Intro(BL_ZERO);
       BL_Delay(BL_ZERO);
-      BL_Rate(MY_RATE);
-      BL_Size(MY_SIZE);
-      BL_Select(BL_SELECT_CHANNEL, MY_CHANNEL);
+      BL_Rate(rate);
+      BL_Size(size);
+      BL_Select(BL_SELECT_CHANNEL, channel);
       BL_Trigger(BL_ZERO, BL_TRIG_RISE);
       BL_Select(BL_SELECT_SOURCE, BL_SOURCE_POD);
       BL_Range(BL_Count(BL_COUNT_RANGE));
       BL_Offset(BL_ZERO);
       BL_Enable(1);
 
-      //printf("   Trace: %d samples @ %.0fHz = %fs\n",BL_Size(BL_ASK),BL_Rate(BL_ASK), BL_Time(BL_ASK));
-
       if (BL_Trace(BL_TRACE_FORCED, BL_SYNCHRONOUS)) {
-          int i, n = MY_SIZE; double d[n];
-          BL_Select(BL_SELECT_CHANNEL, MY_CHANNEL);
-          if (BL_Acquire(n, d)  == n ) {
-            printf("Acquired:");
-            for (i = 0; i < n; i++) {
-              printf(" %f", d[i]);
-            }
-            printf("\n\n");
-          }
+        BL_Select(BL_SELECT_CHANNEL, channel);
+        if (BL_Acquire(size, buffer) != size ) {
+          error = "Failed to acquire data";
+        }
       }
-      //printf("Data acquisition complete. Dump Log...\n");
-      //printf("%s\n",BL_Log());
       exit: BL_Close();
     }
 
     void HandleOKCallback () {
       NanScope();
-      Local<Value> argv[] = {NanNull(), NanNew<Number>(43)};
+      Local<Value> argv[2];
+      if (error.length() > 0) {
+        argv[0] = NanNew<v8::String>(error.c_str(), error.length());
+        argv[1] = NanNull();
+      } else {
+        Local<Array> a = NanNew<Array>(size);
+        for (int i = 0; i < size; i++) {
+          a->Set(i, NanNew(buffer[i]));
+        }
+        argv[0] = NanNull();
+        argv[1] = a;
+      }
       callback->Call(2, argv);
     }
 
   private:
+    int channel;
+    int rate;
+    int size;
+    double* buffer;
     std::string error;
 };
 
 NAN_METHOD(capture) {
   NanScope();
+  Local<Object> options = args[0].As<Object>();
+  Local<Value> opt_channel = options->Get(NanNew("channel"));
+  Local<Value> opt_rate = options->Get(NanNew("rate"));
+  Local<Value> opt_size = options->Get(NanNew("size"));
   NanCallback* callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(new CaptureWorker(callback));
+  NanAsyncQueueWorker(
+    new CaptureWorker(
+      callback,
+      opt_channel->IsNumber() ? opt_channel->Int32Value() : 0,
+      opt_rate->IsNumber() ? opt_rate->Int32Value() : 1000000,
+      opt_size->IsNumber() ? opt_size->Int32Value() : 4
+    )
+  );
   NanReturnUndefined();
 }
