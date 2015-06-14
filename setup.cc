@@ -33,7 +33,6 @@ class BitscopeSetupWorker : public NanAsyncWorker {
 NAN_METHOD(bitscope_setup) {
   NanScope();
   Local<Value> channel = args[0].As<Value>();
-  Local<Object> options = args[1].As<Object>();
   NanCallback* callback = new NanCallback(args[1].As<Function>());
   NanAsyncQueueWorker(
     new BitscopeSetupWorker(

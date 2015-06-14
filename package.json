@@ -1,10 +1,11 @@
 {
   "name": "bitscope",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bitscope library",
   "main": "index.js",
   "gypfile": true,
   "dependencies": {
+    "async": "^1.2.1",
     "nan": "*"
   }
 }
