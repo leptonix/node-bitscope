@@ -1,7 +1,11 @@
 {
   "name": "bitscope",
-  "version": "0.2.0",
-  "description": "Bitscope library",
+  "version": "0.2.1",
+  "description": "BitScope library bindings",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leptonix/bitscope.git"
+  },
   "main": "index.js",
   "gypfile": true,
   "dependencies": {

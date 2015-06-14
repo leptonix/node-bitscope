@@ -1,6 +1,6 @@
 var async = require('async')
 
-var wrapped = require('./build/Release/bitscope')
+var bindings = require('./build/Release/bitscope')
 
 function main(options, callback) {
   if ((typeof options) == 'function') {
@@ -16,16 +16,16 @@ function main(options, callback) {
     channel = channel.split(',').map(function(a){return parseInt(a)})
   }
   if (!Array.isArray(channel)) {channel = [channel]}
-  wrapped.init(parseInt(device), function(error){
+  bindings.init(parseInt(device), function(error){
     if (error) {return callback(error)}
-    async.map(channel, wrapped.setup, function(error){
+    async.map(channel, bindings.setup, function(error){
       if (error) {return callback(error)}
-      wrapped.trace(rate, size, function(error, data){
+      bindings.trace(rate, size, function(error, data){
         if (error) {return callback(error)}
         async.map(
           channel,
           function(item, callback){
-            wrapped.acquire(item, size, callback)
+            bindings.acquire(item, size, callback)
           },
           function(error, data){
             if (error) {return callback(error)}
@@ -38,7 +38,7 @@ function main(options, callback) {
                 }
               })
             )
-            wrapped.close(function(){})
+            bindings.close(function(){})
           }
         )
       })
@@ -47,7 +47,7 @@ function main(options, callback) {
 }
 
 ['init', 'setup', 'trace', 'acquire', 'close'].forEach(function(name){
-  main[name] = wrapped[name]
+  main[name] = bindings[name]
 })
 
 module.exports = main
