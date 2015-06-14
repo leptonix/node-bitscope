@@ -2,7 +2,7 @@ var async = require('async')
 
 var bindings = require('./build/Release/bitscope')
 
-function main(options, callback) {
+function bitscope(options, callback) {
   if ((typeof options) == 'function') {
     callback = options
     options = null
@@ -47,7 +47,7 @@ function main(options, callback) {
 }
 
 ['init', 'setup', 'trace', 'acquire', 'close'].forEach(function(name){
-  main[name] = bindings[name]
+  bitscope[name] = bindings[name]
 })
 
-module.exports = main
+module.exports = bitscope
