@@ -1,15 +1,18 @@
 #include <nan.h>
-#include "capture.h"
-#include "test.h"
+#include "init.h"
+#include "setup.h"
+#include "trace.h"
+#include "acquire.h"
+#include "close.h"
 
-using v8::FunctionTemplate;
-using v8::Handle;
-using v8::Object;
-using v8::String;
+using namespace v8;
 
 void InitAll(Handle<Object> exports) {
-  exports->Set(NanNew<String>("capture"), NanNew<FunctionTemplate>(capture)->GetFunction());
-  exports->Set(NanNew<String>("test"), NanNew<FunctionTemplate>(test)->GetFunction());
+  exports->Set(NanNew<String>("init"), NanNew<FunctionTemplate>(bitscope_init)->GetFunction());
+  exports->Set(NanNew<String>("setup"), NanNew<FunctionTemplate>(bitscope_setup)->GetFunction());
+  exports->Set(NanNew<String>("trace"), NanNew<FunctionTemplate>(bitscope_trace)->GetFunction());
+  exports->Set(NanNew<String>("acquire"), NanNew<FunctionTemplate>(bitscope_acquire)->GetFunction());
+  exports->Set(NanNew<String>("close"), NanNew<FunctionTemplate>(bitscope_close)->GetFunction());
 }
 
 NODE_MODULE(bitscope, InitAll)
