@@ -1,7 +1,7 @@
 #include <nan.h>
 #include <bitlib.h>
 
-#include "init.h"
+#include "acquire.h"
 
 using namespace v8;
 

@@ -1,7 +1,7 @@
 #include <nan.h>
 #include <bitlib.h>
 
-#include "capture.h"
+#include "trace.h"
 
 using namespace v8;
 
