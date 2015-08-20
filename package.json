@@ -10,6 +10,6 @@
   "gypfile": true,
   "dependencies": {
     "async": "^1.2.1",
-    "nan": "*"
+    "nan": "1"
   }
 }
