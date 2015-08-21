@@ -1,6 +1,6 @@
 {
   "name": "bitscope",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "BitScope library bindings",
   "repository": {
     "type": "git",
