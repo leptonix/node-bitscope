@@ -4,13 +4,17 @@
 #include "capture.h"
 
 using namespace v8;
+using Nan::AsyncWorker;
+using Nan::AsyncQueueWorker;
+using Nan::Callback;
+using Nan::HandleScope;
 
 #define MY_DEVICE 0
 #define MY_MODE BL_MODE_FAST
 
-class CaptureWorker : public NanAsyncWorker {
+class CaptureWorker : public AsyncWorker {
   public:
-    CaptureWorker(NanCallback* callback, int channel, int rate, int size) : NanAsyncWorker(callback), channel(channel), rate(rate), size(size) {
+    CaptureWorker(Callback* callback, int channel, int rate, int size) : AsyncWorker(callback), channel(channel), rate(rate), size(size) {
       buffer = new double[size];
     }
     ~CaptureWorker() {
@@ -55,17 +59,17 @@ class CaptureWorker : public NanAsyncWorker {
     }
 
     void HandleOKCallback () {
-      NanScope();
+      HandleScope scope;
       Local<Value> argv[2];
       if (error.length() > 0) {
-        argv[0] = NanNew<v8::String>(error.c_str(), error.length());
-        argv[1] = NanNull();
+        argv[0] = Nan::New<v8::String>(error.c_str(), error.length());
+        argv[1] = Nan::Null();
       } else {
-        Local<Array> a = NanNew<Array>(size);
+        Local<Array> a = Nan::New<Array>(size);
         for (int i = 0; i < size; i++) {
-          a->Set(i, NanNew(buffer[i]));
+          a->Set(i, Nan::New(buffer[i]));
         }
-        argv[0] = NanNull();
+        argv[0] = Nan::Null();
         argv[1] = a;
       }
       callback->Call(2, argv);
@@ -80,13 +84,13 @@ class CaptureWorker : public NanAsyncWorker {
 };
 
 NAN_METHOD(capture) {
-  NanScope();
+  HandleScope scope;
   Local<Object> options = args[0].As<Object>();
-  Local<Value> opt_channel = options->Get(NanNew("channel"));
-  Local<Value> opt_rate = options->Get(NanNew("rate"));
-  Local<Value> opt_size = options->Get(NanNew("size"));
-  NanCallback* callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(
+  Local<Value> opt_channel = options->Get(Nan::New("channel"));
+  Local<Value> opt_rate = options->Get(Nan::New("rate"));
+  Local<Value> opt_size = options->Get(Nan::New("size"));
+  Callback* callback = new Callback(args[1].As<Function>());
+  AsyncQueueWorker(
     new CaptureWorker(
       callback,
       opt_channel->IsNumber() ? opt_channel->Int32Value() : 0,
@@ -94,5 +98,4 @@ NAN_METHOD(capture) {
       opt_size->IsNumber() ? opt_size->Int32Value() : 4
     )
   );
-  NanReturnUndefined();
 }

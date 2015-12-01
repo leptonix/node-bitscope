@@ -3,11 +3,20 @@
 
 #include "close.h"
 
-using namespace v8;
+using v8::Function;
+using v8::Local;
+using v8::Number;
+using v8::Value;
+using Nan::AsyncWorker;
+using Nan::AsyncQueueWorker;
+using Nan::Callback;
+using Nan::HandleScope;
+using Nan::New;
+using Nan::Null;
 
-class BitscopeCloseWorker : public NanAsyncWorker {
+class BitscopeCloseWorker : public AsyncWorker {
   public:
-    BitscopeCloseWorker(NanCallback* callback) : NanAsyncWorker(callback) {}
+    BitscopeCloseWorker(Callback* callback) : AsyncWorker(callback) {}
     ~BitscopeCloseWorker() {}
 
     void Execute () {
@@ -15,14 +24,13 @@ class BitscopeCloseWorker : public NanAsyncWorker {
     }
 
     void HandleOKCallback () {
-      NanScope();
+      HandleScope scope;
       callback->Call(0, NULL);
     }
 };
 
 NAN_METHOD(bitscope_close) {
-  NanScope();
-  NanCallback* callback = new NanCallback(args[0].As<Function>());
-  NanAsyncQueueWorker(new BitscopeCloseWorker(callback));
-  NanReturnUndefined();
+  HandleScope scope;
+  Callback* callback = new Callback(info[0].As<Function>());
+  AsyncQueueWorker(new BitscopeCloseWorker(callback));
 }

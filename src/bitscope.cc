@@ -5,14 +5,20 @@
 #include "acquire.h"
 #include "close.h"
 
-using namespace v8;
+using v8::FunctionTemplate;
+using v8::Handle;
+using v8::Object;
+using v8::String;
+using Nan::GetFunction;
+using Nan::New;
+using Nan::Set;
 
-void InitAll(Handle<Object> exports) {
-  exports->Set(NanNew<String>("init"), NanNew<FunctionTemplate>(bitscope_init)->GetFunction());
-  exports->Set(NanNew<String>("setup"), NanNew<FunctionTemplate>(bitscope_setup)->GetFunction());
-  exports->Set(NanNew<String>("trace"), NanNew<FunctionTemplate>(bitscope_trace)->GetFunction());
-  exports->Set(NanNew<String>("acquire"), NanNew<FunctionTemplate>(bitscope_acquire)->GetFunction());
-  exports->Set(NanNew<String>("close"), NanNew<FunctionTemplate>(bitscope_close)->GetFunction());
+NAN_MODULE_INIT(InitAll) {
+  Set(target, New<String>("init").ToLocalChecked(), GetFunction(New<FunctionTemplate>(bitscope_init)).ToLocalChecked());
+  Set(target, New<String>("setup").ToLocalChecked(), GetFunction(New<FunctionTemplate>(bitscope_setup)).ToLocalChecked());
+  Set(target, New<String>("trace").ToLocalChecked(), GetFunction(New<FunctionTemplate>(bitscope_trace)).ToLocalChecked());
+  Set(target, New<String>("acquire").ToLocalChecked(), GetFunction(New<FunctionTemplate>(bitscope_acquire)).ToLocalChecked());
+  Set(target, New<String>("close").ToLocalChecked(), GetFunction(New<FunctionTemplate>(bitscope_close)).ToLocalChecked());
 }
 
 NODE_MODULE(bitscope, InitAll)

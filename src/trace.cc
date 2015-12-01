@@ -3,14 +3,23 @@
 
 #include "trace.h"
 
-using namespace v8;
+using v8::Function;
+using v8::Local;
+using v8::Number;
+using v8::Value;
+using Nan::AsyncWorker;
+using Nan::AsyncQueueWorker;
+using Nan::Callback;
+using Nan::HandleScope;
+using Nan::New;
+using Nan::Null;
 
 #define MY_DEVICE 0
 #define MY_MODE BL_MODE_FAST
 
-class BitscopeTraceWorker : public NanAsyncWorker {
+class BitscopeTraceWorker : public AsyncWorker {
   public:
-    BitscopeTraceWorker(NanCallback* callback, int rate, int size) : NanAsyncWorker(callback), rate(rate), size(size) {}
+    BitscopeTraceWorker(Callback* callback, int rate, int size) : AsyncWorker(callback), rate(rate), size(size) {}
     ~BitscopeTraceWorker() {}
 
     void Execute() {
@@ -20,12 +29,12 @@ class BitscopeTraceWorker : public NanAsyncWorker {
     }
 
     void HandleOKCallback() {
-      NanScope();
+      HandleScope scope;
       if (success) {
-        Local<Value> argv[] = {NanNull(), NanNew(size)};
+        Local<Value> argv[] = {Null(), New(size)};
         callback->Call(2, argv);
       } else {
-        Local<Value> argv[] = {NanNew("bitscope trace failed")};
+        Local<Value> argv[] = {New("bitscope trace failed").ToLocalChecked()};
         callback->Call(1, argv);
       }
     }
@@ -37,16 +46,15 @@ class BitscopeTraceWorker : public NanAsyncWorker {
 };
 
 NAN_METHOD(bitscope_trace) {
-  NanScope();
-  Local<Value> rate = args[0].As<Value>();
-  Local<Value> size = args[1].As<Value>();
-  NanCallback* callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(
+  HandleScope scope;
+  Local<Value> rate = info[0].As<Value>();
+  Local<Value> size = info[1].As<Value>();
+  Callback* callback = new Callback(info[2].As<Function>());
+  AsyncQueueWorker(
     new BitscopeTraceWorker(
       callback,
       rate->IsNumber() ? rate->Int32Value() : 1000,
       size->IsNumber() ? size->Int32Value() : 10
     )
   );
-  NanReturnUndefined();
 }

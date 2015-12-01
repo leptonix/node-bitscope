@@ -3,11 +3,20 @@
 
 #include "setup.h"
 
-using namespace v8;
+using v8::Function;
+using v8::Local;
+using v8::Number;
+using v8::Value;
+using Nan::AsyncWorker;
+using Nan::AsyncQueueWorker;
+using Nan::Callback;
+using Nan::HandleScope;
+using Nan::New;
+using Nan::Null;
 
-class BitscopeSetupWorker : public NanAsyncWorker {
+class BitscopeSetupWorker : public AsyncWorker {
   public:
-    BitscopeSetupWorker(NanCallback* callback, int channel) : NanAsyncWorker(callback), channel(channel) {}
+    BitscopeSetupWorker(Callback* callback, int channel) : AsyncWorker(callback), channel(channel) {}
     ~BitscopeSetupWorker() {}
 
     void Execute () {
@@ -22,7 +31,7 @@ class BitscopeSetupWorker : public NanAsyncWorker {
     }
 
     void HandleOKCallback () {
-      NanScope();
+      HandleScope scope;
       callback->Call(0, NULL);
     }
 
@@ -31,14 +40,13 @@ class BitscopeSetupWorker : public NanAsyncWorker {
 };
 
 NAN_METHOD(bitscope_setup) {
-  NanScope();
-  Local<Value> channel = args[0].As<Value>();
-  NanCallback* callback = new NanCallback(args[1].As<Function>());
-  NanAsyncQueueWorker(
+  HandleScope scope;
+  Local<Value> channel = info[0].As<Value>();
+  Callback* callback = new Callback(info[1].As<Function>());
+  AsyncQueueWorker(
     new BitscopeSetupWorker(
       callback,
       channel->Int32Value()
     )
   );
-  NanReturnUndefined();
 }

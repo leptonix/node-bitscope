@@ -9,7 +9,7 @@
   "main": "index.js",
   "gypfile": true,
   "dependencies": {
-    "async": "^1.2.1",
-    "nan": "1"
+    "async": "^1.5.0",
+    "nan": "^2.1.0"
   }
 }

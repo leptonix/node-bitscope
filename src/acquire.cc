@@ -3,11 +3,21 @@
 
 #include "acquire.h"
 
-using namespace v8;
+using v8::Array;
+using v8::Function;
+using v8::Local;
+using v8::Number;
+using v8::Value;
+using Nan::AsyncWorker;
+using Nan::AsyncQueueWorker;
+using Nan::Callback;
+using Nan::HandleScope;
+using Nan::New;
+using Nan::Null;
 
-class BitscopeAcquireWorker : public NanAsyncWorker {
+class BitscopeAcquireWorker : public AsyncWorker {
   public:
-    BitscopeAcquireWorker(NanCallback* callback, int channel, int size) : NanAsyncWorker(callback), channel(channel), size(size) {
+    BitscopeAcquireWorker(Callback* callback, int channel, int size) : AsyncWorker(callback), channel(channel), size(size) {
       buffer = new double[size];
     }
     ~BitscopeAcquireWorker() {
@@ -20,16 +30,16 @@ class BitscopeAcquireWorker : public NanAsyncWorker {
     }
 
     void HandleOKCallback () {
-      NanScope();
+      HandleScope scope;
       if (size > 0) {
-        Local<Array> a = NanNew<Array>(size);
-        Local<Value> argv[] = {NanNull(), a};
+        Local<Array> a = New<Array>(size);
+        Local<Value> argv[] = {Null(), a};
         for (int i = 0; i < size; i++) {
-          a->Set(i, NanNew(buffer[i]));
+          a->Set(i, New(buffer[i]));
         }
         callback->Call(2, argv);
       } else {
-        Local<Value> argv[] = {NanNew("unable to acquire data from bitscope channel")};
+        Local<Value> argv[] = {New("unable to acquire data from bitscope channel").ToLocalChecked()};
         callback->Call(1, argv);
       }
     }
@@ -41,16 +51,15 @@ class BitscopeAcquireWorker : public NanAsyncWorker {
 };
 
 NAN_METHOD(bitscope_acquire) {
-  NanScope();
-  Local<Value> channel = args[0].As<Value>();
-  Local<Value> size = args[1].As<Value>();
-  NanCallback* callback = new NanCallback(args[2].As<Function>());
-  NanAsyncQueueWorker(
+  HandleScope scope;
+  Local<Value> channel = info[0].As<Value>();
+  Local<Value> size = info[1].As<Value>();
+  Callback* callback = new Callback(info[2].As<Function>());
+  AsyncQueueWorker(
     new BitscopeAcquireWorker(
       callback,
       channel->Int32Value(),
       size->Int32Value()
     )
   );
-  NanReturnUndefined();
 }
