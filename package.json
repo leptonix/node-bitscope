@@ -1,10 +1,10 @@
 {
   "name": "bitscope",
-  "version": "0.3.0",
-  "description": "BitScope library bindings",
+  "version": "0.3.1",
+  "description": "BitScope library bindings for Node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/leptonix/bitscope.git"
+    "url": "https://github.com/leptonix/node-bitscope.git"
   },
   "main": "index.js",
   "gypfile": true,
